@@ -75,7 +75,7 @@ class JogoBase extends JFrame {
       g.drawImage(img[TRAVE_ESQUERDA], 20, 15, this);
       g.drawImage(img[TRAVE_DIREITA], getSize().width - img[TRAVE_DIREITA].getWidth(this) - 30, 15, this);
 
-      //FONTES PLACAR
+      //DESENHA PLACAR
       g.setColor(new Color(255, 255, 255, 180));
       g.setFont(new Font("arial", Font.BOLD, 36));
       g.drawString(String.valueOf(pontosGoleiro1), (int)(LARGURA/2) + (int)(LARGURA/12/2) - 25, (int)(ALTURA/2) - 20);
@@ -154,7 +154,6 @@ class JogoBase extends JFrame {
         estadoGoleiro1 = GOLEIRO1_PARADO;
       }
       coordYGoleiro1+=20;
-      pontosGoleiro1++;
     }
 
     //MOVIMENTOS PARA O GOLEIRO 2
