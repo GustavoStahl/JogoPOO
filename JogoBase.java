@@ -7,7 +7,7 @@ import javax.imageio.*;
 
 class JogoBase extends JFrame {
   final int ALTURA = 920;
-  final int LARGURA = 1800;
+  final int LARGURA = 1400;
   final int FUNDO = 0;
   final int GOLEIRO1_PARADO = 1;
   final int GOLEIRO2_PARADO = 2;
@@ -20,6 +20,8 @@ class JogoBase extends JFrame {
   final int BOLA = 9;
   int estadoGoleiro1 = GOLEIRO1_PARADO;
   int estadoGoleiro2 = GOLEIRO2_PARADO;
+  int pontosGoleiro1 = 0;
+  int pontosGoleiro2 = 0;
 
   int coordXGoleiro1;
   int coordXGoleiro2;
@@ -72,6 +74,15 @@ class JogoBase extends JFrame {
       //Estatico
       g.drawImage(img[TRAVE_ESQUERDA], 20, 15, this);
       g.drawImage(img[TRAVE_DIREITA], getSize().width - img[TRAVE_DIREITA].getWidth(this) - 30, 15, this);
+
+      //FONTES PLACAR
+      g.setColor(new Color(255, 255, 255, 180));
+      g.setFont(new Font("arial", Font.BOLD, 36));
+      g.drawString(String.valueOf(pontosGoleiro1), (int)(LARGURA/2) + (int)(LARGURA/12/2) - 25, (int)(ALTURA/2) - 20);
+      g.setColor(new Color(255, 255, 255, 180));
+      g.setFont(new Font("arial", Font.BOLD, 36));
+      g.drawString(String.valueOf(pontosGoleiro2), (int)(LARGURA/2)-(int)(LARGURA/12/2) - 20, (int)(ALTURA/2) - 20);
+
       Toolkit.getDefaultToolkit().sync();
     }
   }
@@ -143,6 +154,7 @@ class JogoBase extends JFrame {
         estadoGoleiro1 = GOLEIRO1_PARADO;
       }
       coordYGoleiro1+=20;
+      pontosGoleiro1++;
     }
 
     //MOVIMENTOS PARA O GOLEIRO 2
