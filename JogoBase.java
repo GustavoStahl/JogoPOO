@@ -7,7 +7,7 @@ import javax.imageio.*;
 
 class JogoBase extends JFrame {
   final int ALTURA = 920;
-  final int LARGURA = 1400;
+  final int LARGURA = 1800;
   final int FUNDO = 0;
   final int GOLEIRO1_PARADO = 1;
   final int GOLEIRO2_PARADO = 2;
