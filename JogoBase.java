@@ -48,11 +48,12 @@ class JogoBase extends JFrame {
         img[GOLEIRO2_BAIXO] = ImageIO.read(new File("Images/Goalkeeper-Red_Down.png")).getScaledInstance(100, 125, Image.SCALE_DEFAULT);
         img[BOLA] = ImageIO.read(new File("Images/Soccer_ball.png")).getScaledInstance(70, 70, Image.SCALE_DEFAULT);
 
-        coordXGoleiro1 = 35;
-        coordXGoleiro2 = LARGURA - img[TRAVE_DIREITA].getWidth(this) - 80;
+        coordXGoleiro1 = img[TRAVE_DIREITA].getWidth(this)/2; //OU: 35
+        coordXGoleiro2 = LARGURA - (int)(2.2*img[TRAVE_DIREITA].getWidth(this)); //OU: LARGURA - img[TRAVE_DIREITA].getWidth(this) - 80
         coordYGoleiro1 = (ALTURA - img[GOLEIRO1_PARADO].getHeight(this))/2;
         coordYGoleiro2 = (ALTURA - img[GOLEIRO2_PARADO].getHeight(this))/2;
-      } catch (IOException e) {
+      }
+       catch (IOException e) {
         JOptionPane.showMessageDialog(this, "A imagem não pode ser carregada!\n" + e, "Erro", JOptionPane.ERROR_MESSAGE);
         System.exit(1);
       }
@@ -85,22 +86,19 @@ class JogoBase extends JFrame {
     addKeyListener(new KeyAdapter(){
       public void keyPressed(KeyEvent e){
         if(e.getKeyCode() == KeyEvent.VK_Q){
-          // moveGoleiro(1, "cima");
           CIMA_1 = true;
         }
         if(e.getKeyCode() == KeyEvent.VK_W){
-          // moveGoleiro(1, "baixo");
           BAIXO_1 = true;
         }
         if(e.getKeyCode() == KeyEvent.VK_O){
-          // moveGoleiro(2, "cima");
           CIMA_2 = true;
         }
         if(e.getKeyCode() == KeyEvent.VK_P){
-          // moveGoleiro(2, "baixo");
           BAIXO_2 = true;
         }
       }
+
       public void keyReleased(KeyEvent e){
         if(e.getKeyCode() == KeyEvent.VK_Q){
           CIMA_1 = false;
@@ -117,19 +115,17 @@ class JogoBase extends JFrame {
       }
     });   
 
-    Timer timer = new Timer(25, new ActionListener()
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-          move();
+    Timer timer = new Timer(25, new ActionListener(){
+        public void actionPerformed(ActionEvent e){
+          moveGoleiro();
           des.repaint();
         }
     });
-
     timer.start();
   }
 
-  public void move(){
+  public void moveGoleiro(){
+    //MOVIMENTOS PARA O GOLEIRO 1
     if(CIMA_1 && coordYGoleiro1 >= 60){
       if(estadoGoleiro1 == GOLEIRO1_PARADO){
         estadoGoleiro1 = GOLEIRO1_CIMA;
@@ -148,6 +144,8 @@ class JogoBase extends JFrame {
       }
       coordYGoleiro1+=20;
     }
+
+    //MOVIMENTOS PARA O GOLEIRO 2
     if(CIMA_2 && coordYGoleiro2 >= 60){
       if(estadoGoleiro2 == GOLEIRO2_PARADO){
         estadoGoleiro2 = GOLEIRO2_CIMA;
@@ -167,28 +165,6 @@ class JogoBase extends JFrame {
       coordYGoleiro2+=20;
     }
   }
-
-  public void moveGoleiro(int goleiro, String direcao){
-    if(goleiro == 1){
-      if(direcao == "cima"){
-        
-      }
-      else if(direcao == "baixo"){
-        
-      }
-    }
-
-    else if (goleiro == 2){
-      if(direcao == "cima"){
-        
-      }
-      else if(direcao == "baixo"){
-        
-      }
-    }
-    des.repaint();
-  }
-
 
   static public void main(String[] args) {
     JogoBase f = new JogoBase();
