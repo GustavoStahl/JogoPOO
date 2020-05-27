@@ -4,6 +4,8 @@ import java.awt.image.*;
 import javax.swing.*;
 import java.io.*;
 import javax.imageio.*;
+import java.util.concurrent.TimeUnit;
+
 
 class JogoBase extends JFrame {
   final int ALTURA = 920;
@@ -28,6 +30,10 @@ class JogoBase extends JFrame {
   int coordYGoleiro1;
   int coordYGoleiro2;
   boolean CIMA_1 = false, CIMA_2 = false, BAIXO_1 = false, BAIXO_2 = false;
+
+  //COUNTDOWN
+  boolean inicio = true;
+  int valorCountdown;
 
 
   Image img[] = new Image[10];
@@ -83,17 +89,27 @@ class JogoBase extends JFrame {
       g.setFont(new Font("arial", Font.BOLD, 36));
       g.drawString(String.valueOf(pontosGoleiro2), (int)(LARGURA/2)-(int)(LARGURA/12/2) - 20, (int)(ALTURA/2) - 20);
 
+      if(inicio){
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("arial", Font.BOLD, 115));
+        g.drawString(String.valueOf(valorCountdown), (int)(LARGURA/2)-50, (int)(ALTURA/2));
+        g.setColor(Color.BLUE);
+        g.setFont(new Font("arial", Font.BOLD, 100));
+        g.drawString(String.valueOf(valorCountdown), (int)(LARGURA/2)-50, (int)(ALTURA/2));
+      }
+
       Toolkit.getDefaultToolkit().sync();
     }
   }
 
   JogoBase() {
     super("Trabalho");
-
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     add(des);
     pack();
     setVisible(true);
+    countdown(inicio);
+    inicio = false;
     addKeyListener(new KeyAdapter(){
       public void keyPressed(KeyEvent e){
         if(e.getKeyCode() == KeyEvent.VK_Q){
@@ -128,8 +144,10 @@ class JogoBase extends JFrame {
 
     Timer timer = new Timer(25, new ActionListener(){
         public void actionPerformed(ActionEvent e){
-          moveGoleiro();
-          des.repaint();
+          if(!inicio){
+            moveGoleiro();
+            des.repaint();
+          }
         }
     });
     timer.start();
@@ -177,7 +195,31 @@ class JogoBase extends JFrame {
     }
   }
 
+  void countdown(boolean inicio){
+    if(inicio){
+      for(int i=3; i>0; i--){
+        des.repaint();
+        valorCountdown = i;
+        try{
+          TimeUnit.MILLISECONDS.sleep(800);
+        }
+        catch(InterruptedException e){
+          e.printStackTrace();
+        }
+      }
+      valorCountdown = 3;
+      des.repaint();
+    }
+  }
+
   static public void main(String[] args) {
-    JogoBase f = new JogoBase();
+    // Menu menu = new Menu();
+    // while(true){
+    //   System.out.print(menu.INICIA);
+    //   if(menu.INICIA){
+        new JogoBase();
+    //     menu.INICIA = false;
+    //   }
+    // }
   }
 }
