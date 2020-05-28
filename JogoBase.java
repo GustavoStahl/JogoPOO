@@ -9,8 +9,6 @@ import javax.sound.sampled.Clip;
 import java.util.concurrent.TimeUnit;
 
 class JogoBase extends JFrame {
-  final int ALTURA = 920;
-  final int LARGURA = 1400;
   final int FUNDO = 0;
   final int GOLEIRO1_PARADO = 1;
   final int GOLEIRO2_PARADO = 2;
@@ -21,6 +19,13 @@ class JogoBase extends JFrame {
   final int TRAVE_ESQUERDA = 7;
   final int TRAVE_DIREITA = 8;
   final int BOLA = 9;
+
+  //RESOLUCAO
+  int LARGURA;
+  int ALTURA;
+
+  //SOM HABILITADO
+  int comSom;
 
   //COUNTDOWN
   boolean inicio;
@@ -33,7 +38,7 @@ class JogoBase extends JFrame {
   File inicioSom;
   File countdownSom;
 
-  Desenho des = new Desenho();
+  Desenho des;
   Goleiro goleiro1;
   Goleiro goleiro2;
 
@@ -44,16 +49,16 @@ class JogoBase extends JFrame {
         setPreferredSize(new Dimension(LARGURA, ALTURA));
         //CARREGA IMAGENS
         img[FUNDO] = ImageIO.read(new File("Images/Soccer_field.png"));
-        img[TRAVE_ESQUERDA] = ImageIO.read(new File("Images/Post_left.png")).getScaledInstance(63, 900, Image.SCALE_DEFAULT);
-        img[TRAVE_DIREITA] = ImageIO.read(new File("Images/Post_right.png")).getScaledInstance(63, 900, Image.SCALE_DEFAULT);
+        img[TRAVE_ESQUERDA] = ImageIO.read(new File("Images/Post_left.png")).getScaledInstance((63*LARGURA)/1400, (900*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[TRAVE_DIREITA] = ImageIO.read(new File("Images/Post_right.png")).getScaledInstance((63*LARGURA)/1400, (900*ALTURA)/920, Image.SCALE_DEFAULT);
 
-        img[GOLEIRO1_PARADO] = ImageIO.read(new File("Images/Goalkeeper-Blue.png")).getScaledInstance(100, 125, Image.SCALE_DEFAULT);
-        img[GOLEIRO2_PARADO] = ImageIO.read(new File("Images/Goalkeeper-Red.png")).getScaledInstance(100, 125, Image.SCALE_DEFAULT);
-        img[GOLEIRO1_CIMA] = ImageIO.read(new File("Images/Goalkeeper-Blue_Up.png")).getScaledInstance(100, 125, Image.SCALE_DEFAULT);
-        img[GOLEIRO2_CIMA] = ImageIO.read(new File("Images/Goalkeeper-Red_Up.png")).getScaledInstance(100, 125, Image.SCALE_DEFAULT);
-        img[GOLEIRO1_BAIXO] = ImageIO.read(new File("Images/Goalkeeper-Blue_Down.png")).getScaledInstance(100, 125, Image.SCALE_DEFAULT);
-        img[GOLEIRO2_BAIXO] = ImageIO.read(new File("Images/Goalkeeper-Red_Down.png")).getScaledInstance(100, 125, Image.SCALE_DEFAULT);
-        img[BOLA] = ImageIO.read(new File("Images/Soccer_ball.png")).getScaledInstance(70, 70, Image.SCALE_DEFAULT);
+        img[GOLEIRO1_PARADO] = ImageIO.read(new File("Images/Goalkeeper-Blue.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO2_PARADO] = ImageIO.read(new File("Images/Goalkeeper-Red.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO1_CIMA] = ImageIO.read(new File("Images/Goalkeeper-Blue_Up.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO2_CIMA] = ImageIO.read(new File("Images/Goalkeeper-Red_Up.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO1_BAIXO] = ImageIO.read(new File("Images/Goalkeeper-Blue_Down.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO2_BAIXO] = ImageIO.read(new File("Images/Goalkeeper-Red_Down.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[BOLA] = ImageIO.read(new File("Images/Soccer_ball.png")).getScaledInstance((70*LARGURA)/1400, (70*ALTURA)/920, Image.SCALE_DEFAULT);
 
         //CARREGA SONS
         countdownSom = new File("countdownSound.wav");
@@ -102,9 +107,13 @@ class JogoBase extends JFrame {
     }
   }
 
-  JogoBase() {
+  JogoBase(int largura_temp, int altura_temp, int comSom_temp) {
     super("Trabalho");
     setDefaultCloseOperation(HIDE_ON_CLOSE);
+    ALTURA = altura_temp;
+    LARGURA = largura_temp;
+    comSom = comSom_temp;
+    des = new Desenho();
     //CRIA CLASSE DOS GOLEIROS
     goleiro1 = new Goleiro(GOLEIRO1_PARADO, img[TRAVE_DIREITA].getWidth(this)/2, (ALTURA - img[GOLEIRO1_PARADO].getHeight(this))/2);
     goleiro2 = new Goleiro(GOLEIRO2_PARADO, LARGURA - (int)(2.2*img[TRAVE_DIREITA].getWidth(this)), (ALTURA - img[GOLEIRO2_PARADO].getHeight(this))/2);
@@ -177,7 +186,7 @@ class JogoBase extends JFrame {
 
   public void moveGoleiro(){
     //MOVIMENTOS PARA O GOLEIRO 1
-    if(goleiro1.cima && goleiro1.coordY >= 60){
+    if(goleiro1.cima && goleiro1.coordY >= (70*ALTURA)/920){
       if(goleiro1.estado == GOLEIRO1_PARADO){
         goleiro1.estado = GOLEIRO1_CIMA;
       }
@@ -186,7 +195,7 @@ class JogoBase extends JFrame {
       }
       goleiro1.coordY-=20;
     }
-    if(goleiro1.baixo && goleiro1.coordY <= 745){
+    if(goleiro1.baixo && goleiro1.coordY <= (745*ALTURA)/920){
       if(goleiro1.estado == GOLEIRO1_PARADO){
         goleiro1.estado = GOLEIRO1_BAIXO;
       }
@@ -197,7 +206,7 @@ class JogoBase extends JFrame {
     }
 
     //MOVIMENTOS PARA O GOLEIRO 2
-    if(goleiro2.cima && goleiro2.coordY >= 60){
+    if(goleiro2.cima && goleiro2.coordY >= (70*ALTURA)/920){
       if(goleiro2.estado == GOLEIRO2_PARADO){
         goleiro2.estado = GOLEIRO2_CIMA;
       }
@@ -206,7 +215,7 @@ class JogoBase extends JFrame {
       }
       goleiro2.coordY-=20;
     }
-    if(goleiro2.baixo && goleiro2.coordY <= 745){
+    if(goleiro2.baixo && goleiro2.coordY <= (745*ALTURA)/920){
       if(goleiro2.estado == GOLEIRO2_PARADO){
         goleiro2.estado = GOLEIRO2_BAIXO;
       }
@@ -221,10 +230,10 @@ class JogoBase extends JFrame {
   void contagem(boolean inicio){
     if(inicio){
       for(int i=3; i>0; i--){
+        playSound(countdownSom);
         des.repaint();
         valorCountdown = i;
-        playSound(countdownSom);
-        sleep(1000);
+        sleep(900);
       }
       valorCountdown = 3;
     }
@@ -232,13 +241,15 @@ class JogoBase extends JFrame {
 
   //RESPOSAVEL POR TODOS OS SONS
   public void playSound(File Sound){
-    try{
-      Clip clip = AudioSystem.getClip();
-      clip.open(AudioSystem.getAudioInputStream(Sound));
-      clip.start();
-    } catch (Exception e) {
-      System.out.print(e);
-    }
+    if(comSom == 0){
+      try{
+        Clip clip = AudioSystem.getClip();
+        clip.open(AudioSystem.getAudioInputStream(Sound));
+        clip.start();
+      } catch (Exception e) {
+        System.out.print(e);
+      }
+}
   }
 
   //CONTADOR
@@ -267,7 +278,7 @@ class JogoBase extends JFrame {
       //PRINT NECESSARIO PRO PROGRAMA FUNCIONAR
       System.out.print("");
       if(menu.INICIA){
-        new JogoBase();
+        new JogoBase(menu.resX[menu.optOpcoes[0]], menu.resY[menu.optOpcoes[0]], menu.optOpcoes[2]);
         menu.INICIA = false;
       }
     }

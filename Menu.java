@@ -33,6 +33,9 @@ class Menu extends JFrame {
 
     boolean INICIA = false;
 
+    int ALTURA;
+    int LARGURA;
+
     // Controla o botão ativo
     int selected = JOGAR;
     int selectedOpt = RESOLUCAO;
@@ -399,7 +402,6 @@ class Menu extends JFrame {
                             switch (selected) {
                                 case JOGAR:
                                     INICIA = true;
-                                    System.exit(1);
                                     // do something
                                     break;
                                 case OPT:
