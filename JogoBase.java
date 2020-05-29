@@ -6,6 +6,9 @@ import java.io.*;
 import javax.imageio.*;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import java.awt.geom.Line2D;
+
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 class JogoBase extends JFrame {
@@ -48,6 +51,13 @@ class JogoBase extends JFrame {
   Desenho des;
   Goleiro goleiro1;
   Goleiro goleiro2;
+  Bola bola;
+
+  // Hitboxes
+  Line2D hitLineGoleiroEsqFrente;
+  Line2D hitLineGoleiroDirFrente;
+  Rectangle hitBolaEsqSup, hitBolaEsqInf, hitBolaDirSup, hitBolaDirInf, hitboxGoleiroEsqFrente, hitboxGoleiroDirFrente;
+  Point pontoEsquerdoSup, pontoDireitoSup;
 
   class Desenho extends JPanel{
 
@@ -83,13 +93,18 @@ class JogoBase extends JFrame {
 
     public void paintComponent(Graphics g) {
       super.paintComponent(g);
+      
       //Estatico
       g.drawImage(img[FUNDO], 0, 0, getSize().width, getSize().height, this);
 
       //Dinamico
       g.drawImage(img[goleiro1.estado], goleiro1.coordX, goleiro1.coordY, this);
       g.drawImage(img[goleiro2.estado], goleiro2.coordX, goleiro2.coordY, this);
-      g.drawImage(img[BOLA], 300, getSize().height - img[BOLA].getHeight(this)-300, this);
+      if(!bola.started) {
+        bola.iniciaBola();
+        bola.started = true;
+      }
+      g.drawImage(img[BOLA], bola.coordX, bola.coordY, this);
 
       //Estatico
       g.drawImage(img[TRAVE_ESQUERDA], 20, 15, this);
@@ -98,10 +113,10 @@ class JogoBase extends JFrame {
       //DESENHA PLACAR
       g.setColor(new Color(255, 255, 255, 180));
       g.setFont(new Font("arial", Font.BOLD, 36));
-      g.drawString(String.valueOf(goleiro1.pontos), (int)(LARGURA/2) + (int)(LARGURA/12/2) - 25, (int)(ALTURA/2) - 15);
+      g.drawString(String.valueOf(goleiro2.pontos), (int)(LARGURA/2) + (int)(LARGURA/12/2) - 25, (int)(ALTURA/2) - 15);
       g.setColor(new Color(255, 255, 255, 180));
       g.setFont(new Font("arial", Font.BOLD, 36));
-      g.drawString(String.valueOf(goleiro2.pontos), (int)(LARGURA/2)-(int)(LARGURA/12/2) - 20, (int)(ALTURA/2) - 15);
+      g.drawString(String.valueOf(goleiro1.pontos), (int)(LARGURA/2)-(int)(LARGURA/12/2) - 20, (int)(ALTURA/2) - 15);
 
       //DESENHA CONTADOR
       if(inicio){
@@ -112,6 +127,25 @@ class JogoBase extends JFrame {
         g.setFont(new Font("arial", Font.BOLD, 100));
         g.drawString(String.valueOf(valorCountdown), (int)(LARGURA/2)-50, (int)(ALTURA/2));
       }
+      // Hitboxes
+      // * Goleiros
+      // * * Esquerda
+      hitLineGoleiroEsqFrente = new Line2D.Double(goleiro1.coordX + img[goleiro1.estado].getWidth(this), goleiro1.coordY,
+          goleiro1.coordX + img[goleiro1.estado].getWidth(this), goleiro1.coordY + img[goleiro1.estado].getHeight(this));
+      hitboxGoleiroEsqFrente = new Rectangle(goleiro1.coordX + img[goleiro1.estado].getWidth(this), goleiro1.coordY, 10,
+          img[goleiro1.estado].getHeight(this));
+      // * * Direita
+      hitLineGoleiroDirFrente = new Line2D.Double(goleiro2.coordX, goleiro2.coordY, goleiro2.coordX,
+          goleiro2.coordY + img[goleiro2.estado].getHeight(this));
+      hitboxGoleiroDirFrente = new Rectangle(goleiro2.coordX, goleiro2.coordY, 10, img[goleiro2.estado].getHeight(this));
+
+      // * Bola
+      hitBolaEsqSup = new Rectangle(bola.coordX, bola.coordY + img[BOLA].getHeight(this) / 4, 3, 3);
+      hitBolaEsqInf = new Rectangle(bola.coordX, bola.coordY + img[BOLA].getHeight(this) * 3 / 4, 3, 3);
+      hitBolaDirSup = new Rectangle(bola.coordX + img[BOLA].getWidth(this), bola.coordY + img[BOLA].getHeight(this) / 4,
+          3, 3);
+      hitBolaDirInf = new Rectangle(bola.coordX + img[BOLA].getWidth(this),
+          bola.coordY + img[BOLA].getHeight(this) * 3 / 4, 3, 3);
 
       Toolkit.getDefaultToolkit().sync();
     }
@@ -133,7 +167,7 @@ class JogoBase extends JFrame {
     //CRIA CLASSE DOS GOLEIROS
     goleiro1 = new Goleiro(GOLEIRO1_PARADO, img[TRAVE_DIREITA].getWidth(this)/2, (ALTURA - img[GOLEIRO1_PARADO].getHeight(this))/2);
     goleiro2 = new Goleiro(GOLEIRO2_PARADO, LARGURA - (int)(2.2*img[TRAVE_DIREITA].getWidth(this)), (ALTURA - img[GOLEIRO2_PARADO].getHeight(this))/2);
-    
+    bola = new Bola();
     add(des);
     pack();
     setLocationRelativeTo(null);
@@ -189,12 +223,141 @@ class JogoBase extends JFrame {
         public void actionPerformed(ActionEvent e){
           if(!inicio){
             moveGoleiro();
+            bola.moveBola();
             des.repaint();
           }
         }
     });
     timer.start();
   }
+
+  class Bola {
+      final int MAX_SPEED = 10, MIN_SPEED = 8;
+      final double MAX_ANGLE = 5 * Math.PI / 12;
+      int coordX = 0, coordY;
+      double velX, velY;
+      boolean started = false;
+
+      void iniciaBola() {
+        int dirX = new Random().nextBoolean() ? 1 : -1;
+        int dirY = new Random().nextBoolean() ? 1 : -1;
+        coordX = getWidth() / 2 - img[BOLA].getWidth(JogoBase.this) / 2;
+        coordY = getHeight() / 2 - img[BOLA].getHeight(JogoBase.this) / 2;
+        velX = (new Random().nextInt(MAX_SPEED -  MIN_SPEED) + MIN_SPEED)  * dirX;
+        velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
+      }
+
+      void hitTraves() {
+        double nextX = coordX + velX, nextY =coordY + velY;
+        
+        // trave direita
+        if(nextX + img[BOLA].getWidth(JogoBase.this)/2 >= getSize().width - img[TRAVE_DIREITA].getWidth(JogoBase.this) - 30)
+          if(nextY <= 30 || nextY >= (900 * ALTURA) / 920 - img[BOLA].getHeight(JogoBase.this))
+            velX *= -1;
+        // trave esquerda
+        if(nextX + img[BOLA].getWidth(JogoBase.this)/2 <= 20 + (63 * LARGURA) / 1400)
+          if(nextY <= 30 || nextY >= (900 * ALTURA) / 920 - img[BOLA].getHeight(JogoBase.this))
+            velX *= -1;
+      }
+
+      void hitLaterais() {
+          if (coordY + velY + 20 >= getHeight() - img[BOLA].getHeight(JogoBase.this))
+            velY *= -1;
+          else if (coordY <= 0)
+            velY *= -1; 
+      }
+
+      // checa se bola está tocando algum dos goleiros
+      // obs: esse codigo é uma abominação e não deveria ser crime te-lo criado
+      void hitGoleiro() {
+        double yIntersect, bounceAngle = 0, speed, newVelY;
+        speed = Math.sqrt(Math.pow(velX, 2) + Math.pow(velY, 2));
+        // se a bola estiver a direita do campo
+        if (coordX > getWidth() / 2) {
+          if (hitBolaDirSup.getY() >= hitboxGoleiroDirFrente.getY()
+              && hitBolaDirSup.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
+              && hitBolaDirSup.getX() >= hitboxGoleiroDirFrente.getX()
+              && hitBolaDirSup.getX() <= hitboxGoleiroDirFrente.getX() + 20) {
+            yIntersect = hitBolaDirSup.getY() - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
+            yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
+            bounceAngle = yIntersect * MAX_ANGLE;
+            velX = speed * -Math.cos(bounceAngle);
+            newVelY = speed * -Math.sin(bounceAngle);
+            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+              velY = -newVelY;
+            else
+              velY = newVelY;
+          } else if (hitBolaDirInf.getY() > hitboxGoleiroDirFrente.getY()
+              && hitBolaDirInf.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
+              && hitBolaDirInf.getX() >= hitboxGoleiroDirFrente.getX()
+              && hitBolaDirInf.getX() <= hitboxGoleiroDirFrente.getX() + 20) {
+            yIntersect = hitBolaDirInf.getY() - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
+            yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
+            bounceAngle = yIntersect * MAX_ANGLE;
+            velX = speed * -Math.cos(bounceAngle);
+            newVelY = speed * -Math.sin(bounceAngle);
+            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+              velY = -newVelY;
+            else
+              velY = newVelY;
+          }
+        } else {
+          if (hitBolaEsqSup.getY() >= hitboxGoleiroEsqFrente.getY()
+              && hitBolaEsqSup.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
+              && hitBolaEsqSup.getX() <= hitboxGoleiroEsqFrente.getX() + 1
+              && hitBolaEsqSup.getX() >= hitboxGoleiroEsqFrente.getX() - 5) {
+            yIntersect = hitBolaEsqSup.getY() - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
+            yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
+            bounceAngle = yIntersect * MAX_ANGLE;
+            velX = speed * Math.cos(bounceAngle);
+            newVelY = speed * -Math.sin(bounceAngle);
+            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+              velY = -newVelY;
+            else
+              velY = newVelY;
+          } else if (hitBolaEsqInf.getY() >= hitboxGoleiroEsqFrente.getY()
+              && hitBolaEsqInf.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
+              && hitBolaEsqInf.getX() <= hitboxGoleiroEsqFrente.getX() + 1
+              && hitBolaEsqInf.getX() >= hitboxGoleiroEsqFrente.getX() - 5) {
+            yIntersect = hitBolaEsqInf.getY() - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
+            yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
+            bounceAngle = yIntersect * MAX_ANGLE;
+            velX = speed * Math.cos(bounceAngle);
+            newVelY = speed * -Math.sin(bounceAngle);
+            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+              velY = -newVelY;
+            else
+              velY = newVelY;
+          }
+        }
+      }
+
+      // loop que move bola e executa as verificações de hits
+      void moveBola() {
+        hitGoleiro();
+        hitLaterais();
+        hitTraves();
+        dentroDoGol();
+
+        if(velY < 1 && velY > 0)
+          velY = 1;
+
+        coordX += velX;
+        coordY += velY;
+      }
+
+      // checa se bola esta dentro de algum dos gols
+      void dentroDoGol() {
+        if (coordX <= 20 - img[BOLA].getWidth(JogoBase.this) / 2) {
+          iniciaBola();
+          goleiro2.pontos++;
+        } else if (coordX >= getSize().width - img[TRAVE_DIREITA].getWidth(JogoBase.this) - 30
+            + img[BOLA].getWidth(JogoBase.this) / 2) {
+          iniciaBola();
+          goleiro1.pontos++;
+        }
+      }
+    }
 
   class Goleiro{
     int posicaoXInicial;
