@@ -31,7 +31,7 @@ class Menu extends JFrame {
     final int SOM_OFF = 0;
     final int SOM_ON = 1;
 
-    boolean menuAtivo = true;
+    volatile boolean menuAtivo = true;
 
     int ALTURA;
     int LARGURA;

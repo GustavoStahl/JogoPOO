@@ -20,7 +20,7 @@ class JogoBase extends JFrame {
   final int TRAVE_DIREITA = 8;
   final int BOLA = 9;
 
-  boolean jogoAtivo = true;
+  volatile boolean jogoAtivo = true;
 
   //RESOLUCAO
   int LARGURA;
@@ -326,7 +326,6 @@ class JogoBase extends JFrame {
     Menu menu = new Menu(true);
 
     while(true){
-      System.out.print(""); //PRINT NECESSARIO PRO PROGRAMA FUNCIONAR
       if(iniciaMenu){
         menu = new Menu();
         while(menu.menuAtivo){
@@ -338,7 +337,6 @@ class JogoBase extends JFrame {
         JogoBase jogo = new JogoBase(menu.resX[menu.optOpcoes[0]], menu.resY[menu.optOpcoes[0]], menu.optOpcoes[2]);
         while(jogo.jogoAtivo){
           //DO NOTHING...
-          System.out.print(""); //PRINT NECESSARIO PRO PROGRAMA FUNCIONAR
         }
         iniciaMenu = true;
       }
