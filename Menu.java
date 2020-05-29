@@ -84,8 +84,8 @@ class Menu extends JFrame {
             try {
                 setPreferredSize(new Dimension(800, 600));
                 // lê imagens de fundo
-                img[0] = ImageIO.read(new File("data/campo-blur.png"));
-                img[1] = ImageIO.read(new File("data/rede-blur.png"));
+                img[0] = ImageIO.read(new File("Imagens/campo-blur.png"));
+                img[1] = ImageIO.read(new File("Imagens/rede-blur.png"));
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "A imagem não pode ser carregada!\n" + e, "Erro",
                         JOptionPane.ERROR_MESSAGE);

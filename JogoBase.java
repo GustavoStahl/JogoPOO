@@ -55,25 +55,25 @@ class JogoBase extends JFrame {
       try {
         setPreferredSize(new Dimension(LARGURA, ALTURA));
         //CARREGA IMAGENS
-        img[FUNDO] = ImageIO.read(new File("Images/Soccer_field.png"));
-        img[TRAVE_ESQUERDA] = ImageIO.read(new File("Images/Post_left.png")).getScaledInstance((63*LARGURA)/1400, (900*ALTURA)/920, Image.SCALE_DEFAULT);
-        img[TRAVE_DIREITA] = ImageIO.read(new File("Images/Post_right.png")).getScaledInstance((63*LARGURA)/1400, (900*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[FUNDO] = ImageIO.read(new File("Imagens/Soccer_field.png"));
+        img[TRAVE_ESQUERDA] = ImageIO.read(new File("Imagens/Post_left.png")).getScaledInstance((63*LARGURA)/1400, (900*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[TRAVE_DIREITA] = ImageIO.read(new File("Imagens/Post_right.png")).getScaledInstance((63*LARGURA)/1400, (900*ALTURA)/920, Image.SCALE_DEFAULT);
 
-        img[GOLEIRO1_PARADO] = ImageIO.read(new File("Images/Goalkeeper-Blue.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
-        img[GOLEIRO2_PARADO] = ImageIO.read(new File("Images/Goalkeeper-Red.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
-        img[GOLEIRO1_CIMA] = ImageIO.read(new File("Images/Goalkeeper-Blue_Up.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
-        img[GOLEIRO2_CIMA] = ImageIO.read(new File("Images/Goalkeeper-Red_Up.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
-        img[GOLEIRO1_BAIXO] = ImageIO.read(new File("Images/Goalkeeper-Blue_Down.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
-        img[GOLEIRO2_BAIXO] = ImageIO.read(new File("Images/Goalkeeper-Red_Down.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
-        img[BOLA] = ImageIO.read(new File("Images/Soccer_ball.png")).getScaledInstance((70*LARGURA)/1400, (70*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO1_PARADO] = ImageIO.read(new File("Imagens/Goalkeeper-Blue.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO2_PARADO] = ImageIO.read(new File("Imagens/Goalkeeper-Red.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO1_CIMA] = ImageIO.read(new File("Imagens/Goalkeeper-Blue_Up.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO2_CIMA] = ImageIO.read(new File("Imagens/Goalkeeper-Red_Up.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO1_BAIXO] = ImageIO.read(new File("Imagens/Goalkeeper-Blue_Down.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[GOLEIRO2_BAIXO] = ImageIO.read(new File("Imagens/Goalkeeper-Red_Down.png")).getScaledInstance((100*LARGURA)/1400, (125*ALTURA)/920, Image.SCALE_DEFAULT);
+        img[BOLA] = ImageIO.read(new File("Imagens/Soccer_ball.png")).getScaledInstance((70*LARGURA)/1400, (70*ALTURA)/920, Image.SCALE_DEFAULT);
 
         //CARREGA SONS
-        countdownSom = new File("countdownSound.wav");
-        inicioSom = new File("startSound.wav");
-        torcida = new File("crowd.wav");
-        somBola1 = new File("ballKick1.wav");
-        somBola2 = new File("ballKick2.wav");
-        pontoFeito = new File("winSound.wav");
+        countdownSom = new File("Sons/countdownSound.wav");
+        inicioSom = new File("Sons/startSound.wav");
+        torcida = new File("Sons/crowd.wav");
+        somBola1 = new File("Sons/ballKick1.wav");
+        somBola2 = new File("Sons/ballKick2.wav");
+        pontoFeito = new File("Sons/winSound.wav");
       }
        catch (IOException e) {
         JOptionPane.showMessageDialog(this, "A imagem não pode ser carregada!\n" + e, "Erro", JOptionPane.ERROR_MESSAGE);
