@@ -20,12 +20,14 @@ class JogoBase extends JFrame {
   final int TRAVE_DIREITA = 8;
   final int BOLA = 9;
 
+  boolean jogoAtivo = true;
+
   //RESOLUCAO
   int LARGURA;
   int ALTURA;
 
   //SOM HABILITADO
-  int comSom;
+  boolean comSom;
 
   //COUNTDOWN
   boolean inicio;
@@ -37,12 +39,17 @@ class JogoBase extends JFrame {
   //SONS
   File inicioSom;
   File countdownSom;
+  File torcida;
+  File somBola1;
+  File somBola2;
+  File pontoFeito;
+  PlaySound loopTorcida;
 
   Desenho des;
   Goleiro goleiro1;
   Goleiro goleiro2;
 
-  class Desenho extends JPanel {
+  class Desenho extends JPanel{
 
     Desenho() {
       try {
@@ -63,7 +70,10 @@ class JogoBase extends JFrame {
         //CARREGA SONS
         countdownSom = new File("countdownSound.wav");
         inicioSom = new File("startSound.wav");
-
+        torcida = new File("crowd.wav");
+        somBola1 = new File("ballKick1.wav");
+        somBola2 = new File("ballKick2.wav");
+        pontoFeito = new File("winSound.wav");
       }
        catch (IOException e) {
         JOptionPane.showMessageDialog(this, "A imagem não pode ser carregada!\n" + e, "Erro", JOptionPane.ERROR_MESSAGE);
@@ -88,10 +98,10 @@ class JogoBase extends JFrame {
       //DESENHA PLACAR
       g.setColor(new Color(255, 255, 255, 180));
       g.setFont(new Font("arial", Font.BOLD, 36));
-      g.drawString(String.valueOf(goleiro1.pontos), (int)(LARGURA/2) + (int)(LARGURA/12/2) - 25, (int)(ALTURA/2) - 20);
+      g.drawString(String.valueOf(goleiro1.pontos), (int)(LARGURA/2) + (int)(LARGURA/12/2) - 25, (int)(ALTURA/2) - 15);
       g.setColor(new Color(255, 255, 255, 180));
       g.setFont(new Font("arial", Font.BOLD, 36));
-      g.drawString(String.valueOf(goleiro2.pontos), (int)(LARGURA/2)-(int)(LARGURA/12/2) - 20, (int)(ALTURA/2) - 20);
+      g.drawString(String.valueOf(goleiro2.pontos), (int)(LARGURA/2)-(int)(LARGURA/12/2) - 20, (int)(ALTURA/2) - 15);
 
       //DESENHA CONTADOR
       if(inicio){
@@ -109,19 +119,32 @@ class JogoBase extends JFrame {
 
   JogoBase(int largura_temp, int altura_temp, int comSom_temp) {
     super("Trabalho");
-    setDefaultCloseOperation(HIDE_ON_CLOSE);
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+    //PEGA VALORES PARA RESOLUCAO
     ALTURA = altura_temp;
     LARGURA = largura_temp;
-    comSom = comSom_temp;
+
     des = new Desenho();
+    if(comSom_temp == 1){
+      comSom = true;
+    }
+
     //CRIA CLASSE DOS GOLEIROS
     goleiro1 = new Goleiro(GOLEIRO1_PARADO, img[TRAVE_DIREITA].getWidth(this)/2, (ALTURA - img[GOLEIRO1_PARADO].getHeight(this))/2);
     goleiro2 = new Goleiro(GOLEIRO2_PARADO, LARGURA - (int)(2.2*img[TRAVE_DIREITA].getWidth(this)), (ALTURA - img[GOLEIRO2_PARADO].getHeight(this))/2);
+    
     add(des);
     pack();
     setLocationRelativeTo(null);
     setVisible(true);
+
+    //INICIA SOM DE TORCIDA
+    loopTorcida = new PlaySound(torcida, true);
+
+    //INICIA CONTADOR
     contagemProcesso();
+
     //NECESSARIO PARA CONSEGUIR MOVER OS DOIS GOLEIROS AO MESMO TEMPO
     addKeyListener(new KeyAdapter(){
       public void keyPressed(KeyEvent e){
@@ -152,6 +175,12 @@ class JogoBase extends JFrame {
         if(e.getKeyCode() == KeyEvent.VK_P){
           goleiro2.baixo = false;
         }
+      }
+    });
+    addWindowListener(new WindowAdapter(){
+      public void windowClosed(WindowEvent e){
+        jogoAtivo = false;
+        loopTorcida.clip.stop();
       }
     });
 
@@ -228,9 +257,22 @@ class JogoBase extends JFrame {
 
   //CONTADOR DO CONTADOR | REDESENHA A CADA INTERACAO
   void contagem(boolean inicio){
+    
+    //NECESSITA DE UM WINDOW LISTENER NA CONTAGEM, JA QUE CONGELA O PROGRAMA
+    addWindowListener(new WindowAdapter(){
+      public void 	windowClosed(WindowEvent e){
+        jogoAtivo = false;
+        loopTorcida.clip.stop();
+      }
+    });
+
     if(inicio){
       for(int i=3; i>0; i--){
-        playSound(countdownSom);
+        if(!jogoAtivo){
+          comSom = false;
+          return;
+        }
+        new PlaySound(countdownSom, false);
         des.repaint();
         valorCountdown = i;
         sleep(900);
@@ -240,16 +282,23 @@ class JogoBase extends JFrame {
   }
 
   //RESPOSAVEL POR TODOS OS SONS
-  public void playSound(File Sound){
-    if(comSom == 0){
-      try{
-        Clip clip = AudioSystem.getClip();
-        clip.open(AudioSystem.getAudioInputStream(Sound));
-        clip.start();
-      } catch (Exception e) {
-        System.out.print(e);
+  class PlaySound{
+    Clip clip;
+    PlaySound(File Sound, boolean loop){
+      if(comSom){
+        try{
+          clip = AudioSystem.getClip();
+          clip.open(AudioSystem.getAudioInputStream(Sound));
+          clip.start();
+          if(loop){
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+          }
+        } 
+        catch (Exception e) {
+          System.out.print(e);
+        }
       }
-}
+    }
   }
 
   //CONTADOR
@@ -259,7 +308,7 @@ class JogoBase extends JFrame {
     contagem(inicio);
     inicio = false;
     des.repaint();
-    playSound(inicioSom);
+    new PlaySound(inicioSom, false);
   }
 
   //FUNCAO PAUSA
@@ -273,13 +322,25 @@ class JogoBase extends JFrame {
   }
 
   static public void main(String[] args) {
-    Menu menu = new Menu();
+    boolean iniciaMenu = true;
+    Menu menu = new Menu(true);
+
     while(true){
-      //PRINT NECESSARIO PRO PROGRAMA FUNCIONAR
-      System.out.print("");
-      if(menu.INICIA){
-        new JogoBase(menu.resX[menu.optOpcoes[0]], menu.resY[menu.optOpcoes[0]], menu.optOpcoes[2]);
-        menu.INICIA = false;
+      System.out.print(""); //PRINT NECESSARIO PRO PROGRAMA FUNCIONAR
+      if(iniciaMenu){
+        menu = new Menu();
+        while(menu.menuAtivo){
+          //DO NOTHING...
+        }
+        iniciaMenu = false;
+      }
+      else{
+        JogoBase jogo = new JogoBase(menu.resX[menu.optOpcoes[0]], menu.resY[menu.optOpcoes[0]], menu.optOpcoes[2]);
+        while(jogo.jogoAtivo){
+          //DO NOTHING...
+          System.out.print(""); //PRINT NECESSARIO PRO PROGRAMA FUNCIONAR
+        }
+        iniciaMenu = true;
       }
     }
   }

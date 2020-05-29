@@ -31,7 +31,7 @@ class Menu extends JFrame {
     final int SOM_OFF = 0;
     final int SOM_ON = 1;
 
-    boolean INICIA = false;
+    boolean menuAtivo = true;
 
     int ALTURA;
     int LARGURA;
@@ -72,7 +72,7 @@ class Menu extends JFrame {
 
         Rectangle optSound;
         String optSoundTxt = "SOM";
-        String[] optSoundToggleTxt = {"ATIVADO", "DESATIVADO"};
+        String[] optSoundToggleTxt = {"DESATIVADO", "ATIVADO"};
 
         Rectangle optMode;
         String optModeTxt = "MODO";
@@ -383,6 +383,12 @@ class Menu extends JFrame {
         des.repaint();
     }
 
+    Menu(boolean inicia){
+        if(inicia){
+            dispose();
+        }
+    }
+
     Menu() {
         super("FUTBILLY");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -401,7 +407,8 @@ class Menu extends JFrame {
                         case KeyEvent.VK_ENTER:
                             switch (selected) {
                                 case JOGAR:
-                                    INICIA = true;
+                                    menuAtivo = false;
+                                    dispose();
                                     // do something
                                     break;
                                 case OPT:
@@ -431,7 +438,8 @@ class Menu extends JFrame {
                 // TODO: MUDAR PARA SWITCH CASE
                 if (currScreen == MENU_IMG) {
                     if (des.jogarBtn.contains(p)) {
-                        INICIA = true;
+                        menuAtivo = false;
+                        dispose();
                         // iniciar jogo
                     } else if (des.optBtn.contains(p)) {
                         // tela de opções
