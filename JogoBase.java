@@ -230,6 +230,12 @@ class JogoBase extends JFrame {
         if (e.getKeyCode() == KeyEvent.VK_P) {
           goleiro2.baixo = true;
         }
+        if (e.getKeyCode() == KeyEvent.VK_X) {
+          jogoAtivo = false;
+          loopTorcida.clip.stop();
+          des.repaint();
+          dispose();
+        }
       }
 
       // NECESSARIO PARA CONSEGUIR MOVER OS DOIS GOLEIROS AO MESMO TEMPO
@@ -421,7 +427,7 @@ class JogoBase extends JFrame {
     void moveBola() {
       moveHitboxes();
       // se detectar algum hit toca som
-      if(hitLaterais() || hitTraves() || hitGoleiro() && jogoAtivo) {
+      if((hitLaterais() || hitTraves() || hitGoleiro()) && jogoAtivo) {
         if(!sound)
           new PlaySound(somBola1, false);
         else 

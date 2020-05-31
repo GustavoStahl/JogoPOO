@@ -479,7 +479,7 @@ class Menu extends JFrame {
     Menu() {
         super("FUTEBOL EXTREME DOIDERA");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
+        selectUp();
         // Lida com ações do teclado
         addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
