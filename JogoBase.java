@@ -119,8 +119,8 @@ class JogoBase extends JFrame {
     
       // Inicia bolas
       if (optBolas && !bola2.started && !bola1.started) {
-        bola2.iniciaBola();
         bola1.iniciaBola();
+        bola2.iniciaBola();
       } else if (!optBolas && !bola1.started) {
         bola1.iniciaBola();
         g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
@@ -273,10 +273,10 @@ class JogoBase extends JFrame {
   class Bola {
     final int MAX_SPEED = 10, MIN_SPEED = 8;
     final double MAX_ANGLE = 5 * Math.PI / 12;
-    int n;
+    int n, dirX, dirY;
     int coordX = 0, coordY;
     double velX, velY;
-    boolean started = false;
+    boolean started = false, sound = false;
 
     // Hitboxes
     Rectangle hbEsqSup, hbEsqInf, hbDirSup, hbDirInf;
@@ -287,21 +287,27 @@ class JogoBase extends JFrame {
 
     // n = 0, 1 bola, n = 1, bola de cima, n = 2 bola de baixo
     void iniciaBola() {
-      int dirX = new Random().nextBoolean() ? 1 : -1;
-      int dirY = new Random().nextBoolean() ? 1 : -1;
+      dirX = new Random().nextBoolean() ? 1 : -1;
+      dirY = new Random().nextBoolean() ? 1 : -1;
       if (n == 0) {
         coordX = getWidth() / 2 - img[BOLA].getWidth(JogoBase.this) / 2;
         coordY = getHeight() / 2 - img[BOLA].getHeight(JogoBase.this) / 2;
+        velX = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirX;
+        velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
       } else if (n == 1) {
         coordX = getWidth() / 2 - img[BOLA].getWidth(JogoBase.this) / 2;
         coordY = getHeight() * 1 / 4 - img[BOLA].getHeight(JogoBase.this) / 2;
+        velX = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirX;
+        velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
       } else {
         coordX = getWidth() / 2 - img[BOLA].getWidth(JogoBase.this) / 2;
         coordY = getHeight() * 3 / 4 - img[BOLA].getHeight(JogoBase.this) / 2;
+        velX = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * -bola1.dirX;
+        velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
       }
       moveHitboxes();
-      velX = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirX;
-      velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
+      // velX = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirX;
+      // velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
       started = true;
     }
 
@@ -314,30 +320,36 @@ class JogoBase extends JFrame {
           coordY + img[BOLA].getHeight(JogoBase.this) * 3 / 4, 3, 3);
     }
 
-    void hitTraves() {
+    boolean hitTraves() {
       double nextX = coordX + velX, nextY = coordY + velY;
 
       // trave direita
       if (nextX + img[BOLA].getWidth(JogoBase.this) / 2 >= getSize().width - img[TRAVE_DIREITA].getWidth(JogoBase.this)
           - 30)
-        if (nextY <= 30 || nextY >= (900 * ALTURA) / 920 - img[BOLA].getHeight(JogoBase.this))
+        if (nextY <= 30 || nextY >= (900 * ALTURA) / 920 - img[BOLA].getHeight(JogoBase.this)) {
           velX *= -1;
+          return true;
+        }
       // trave esquerda
       if (nextX + img[BOLA].getWidth(JogoBase.this) / 2 <= 20 + (63 * LARGURA) / 1400)
-        if (nextY <= 30 || nextY >= (900 * ALTURA) / 920 - img[BOLA].getHeight(JogoBase.this))
+        if (nextY <= 30 || nextY >= (900 * ALTURA) / 920 - img[BOLA].getHeight(JogoBase.this)) {
           velX *= -1;
+          return true;
+        }
+      return false;
     }
 
-    void hitLaterais() {
-      if (coordY + velY + 20 >= getHeight() - img[BOLA].getHeight(JogoBase.this))
+    boolean hitLaterais() {
+      if (coordY + velY + 20 >= getHeight() - img[BOLA].getHeight(JogoBase.this) || coordY <= 0) {
         velY *= -1;
-      else if (coordY <= 0)
-        velY *= -1;
+        return true;
+      }
+      return false;
     }
 
     // checa se bola está tocando algum dos goleiros
     // obs: esse codigo é uma abominação e deveria ser crime te-lo criado
-    void hitGoleiro() {
+    boolean hitGoleiro() {
       double yIntersect, bounceAngle = 0, speed, newVelY;
       speed = Math.sqrt(Math.pow(velX, 2) + Math.pow(velY, 2));
       // se a bola estiver a direita do campo
@@ -355,6 +367,7 @@ class JogoBase extends JFrame {
             velY = -newVelY;
           else
             velY = newVelY;
+          return true;
         } else if (hbDirInf.getY() >= hitboxGoleiroDirFrente.getY()
             && hbDirInf.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
             && hbDirInf.getX() >= hitboxGoleiroDirFrente.getX()
@@ -368,6 +381,7 @@ class JogoBase extends JFrame {
             velY = -newVelY;
           else
             velY = newVelY;
+          return true;
         }
       } else {
         if (hbEsqSup.getY() >= hitboxGoleiroEsqFrente.getY()
@@ -383,6 +397,7 @@ class JogoBase extends JFrame {
             velY = -newVelY;
           else
             velY = newVelY;
+          return true;
         } else if (hbEsqInf.getY() >= hitboxGoleiroEsqFrente.getY()
             && hbEsqInf.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
             && hbEsqInf.getX() <= hitboxGoleiroEsqFrente.getX() + (int) (20. / 800 * LARGURA)
@@ -396,16 +411,23 @@ class JogoBase extends JFrame {
             velY = -newVelY;
           else
             velY = newVelY;
+          return true;
         }
       }
+      return false;
     }
 
     // loop que move bola e executa as verificações de hits
     void moveBola() {
       moveHitboxes();
-      hitGoleiro();
-      hitLaterais();
-      hitTraves();
+      // se detectar algum hit toca som
+      if(hitLaterais() || hitTraves() || hitGoleiro() && jogoAtivo) {
+        if(!sound)
+          new PlaySound(somBola1, false);
+        else 
+          new PlaySound(somBola2, false);
+        sound = !sound;
+      }
       dentroDoGol();
 
       if (velY < 1 && velY > 0)
