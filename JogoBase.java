@@ -106,6 +106,9 @@ class JogoBase extends JFrame {
 
     public void paintComponent(Graphics g) {
       super.paintComponent(g);
+      Graphics2D g2d = (Graphics2D) g;
+      // Anti-Aliasing para o texto
+      g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
       // Estatico
       g.drawImage(img[FUNDO], 0, 0, getSize().width, getSize().height, this);
@@ -113,34 +116,23 @@ class JogoBase extends JFrame {
       // Dinamico
       g.drawImage(img[goleiro1.estado], goleiro1.coordX, goleiro1.coordY, this);
       g.drawImage(img[goleiro2.estado], goleiro2.coordX, goleiro2.coordY, this);
-      // if (!bola1.started)
-      //   bola1.iniciaBola();
-      
-      // if (optBolas) {
-      //   if (!bola2.started) {
-      //     bola2.iniciaBola();
-      //     bola2.started = true;
-      //   }
-      //   g.drawImage(img[BOLA], bola2.coordX, bola2.coordY, this);
-      // }
-      if(optBolas && !bola2.started && !bola1.started) {
-          bola2.iniciaBola();
-          bola1.iniciaBola();
-          // g.drawImage(img[BOLA], bola2.coordX, bola2.coordY, this);
-          // g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
-      } else  if (!optBolas && !bola1.started) {
-          bola1.iniciaBola();
-          g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
-      }
-
-      if(bola1.started) {
+    
+      // Inicia bolas
+      if (optBolas && !bola2.started && !bola1.started) {
+        bola2.iniciaBola();
+        bola1.iniciaBola();
+      } else if (!optBolas && !bola1.started) {
+        bola1.iniciaBola();
         g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
       }
-
-      if(optBolas && bola2.started) {
+      // Desenha bolas
+      if (bola1.started) {
+        g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
+      }
+      if (optBolas && bola2.started) {
         g.drawImage(img[BOLA], bola2.coordX, bola2.coordY, this);
       }
-    
+
       // Estatico
       g.drawImage(img[TRAVE_ESQUERDA], 20, 15, this);
       g.drawImage(img[TRAVE_DIREITA], getSize().width - img[TRAVE_DIREITA].getWidth(this) - 30, 15, this);
@@ -148,21 +140,21 @@ class JogoBase extends JFrame {
       // DESENHA PLACAR
       g.setColor(new Color(255, 255, 255, 180));
       g.setFont(new Font("arial", Font.BOLD, 36));
-      g.drawString(String.valueOf(goleiro2.pontos), (int) (LARGURA / 2) + (int) (LARGURA / 12 / 2) - 25,
+      g2d.drawString(String.valueOf(goleiro2.pontos), (int) (LARGURA / 2) + (int) (LARGURA / 12 / 2) - 25,
           (int) (ALTURA / 2) - 15);
       g.setColor(new Color(255, 255, 255, 180));
       g.setFont(new Font("arial", Font.BOLD, 36));
-      g.drawString(String.valueOf(goleiro1.pontos), (int) (LARGURA / 2) - (int) (LARGURA / 12 / 2) - 20,
+      g2d.drawString(String.valueOf(goleiro1.pontos), (int) (LARGURA / 2) - (int) (LARGURA / 12 / 2) - 20,
           (int) (ALTURA / 2) - 15);
 
       // DESENHA CONTADOR
       if (inicio) {
         g.setColor(Color.BLACK);
         g.setFont(new Font("arial", Font.BOLD, 115));
-        g.drawString(String.valueOf(valorCountdown), (int) (LARGURA / 2) - 50, (int) (ALTURA / 2));
+        g2d.drawString(String.valueOf(valorCountdown), (int) (LARGURA / 2) - 50, (int) (ALTURA / 2));
         g.setColor(Color.BLUE);
         g.setFont(new Font("arial", Font.BOLD, 100));
-        g.drawString(String.valueOf(valorCountdown), (int) (LARGURA / 2) - 50, (int) (ALTURA / 2));
+        g2d.drawString(String.valueOf(valorCountdown), (int) (LARGURA / 2) - 50, (int) (ALTURA / 2));
       }
       // Hitboxes
       // * Goleiros
@@ -180,15 +172,6 @@ class JogoBase extends JFrame {
       hitboxGoleiroDirFrente = new Rectangle(goleiro2.coordX, goleiro2.coordY, (int) (20. / 800 * LARGURA),
           img[goleiro2.estado].getHeight(this));
 
-      // Graphics2D g2d = (Graphics2D) g;
-      // g2d.setColor(Color.RED);
-      // g2d.draw(bola2.hbDirInf);
-      // g2d.draw(bola2.hbDirSup);
-      // g2d.draw(bola2.hbEsqInf);
-      // g2d.draw(bola2.hbEsqSup);
-      // g2d.draw(hitBola2DirSup);
-      // g2d.draw(hitBola2EsqInf);
-      // g2d.draw(hitBola2EsqSup);
       Toolkit.getDefaultToolkit().sync();
     }
   }
@@ -435,13 +418,13 @@ class JogoBase extends JFrame {
     // checa se bola esta dentro de algum dos gols
     void dentroDoGol() {
       if (coordX <= 20 - img[BOLA].getWidth(JogoBase.this) / 2) {
-        if(started)
+        if (started)
           goleiro2.pontos++;
         started = false;
         velX = velY = 0;
       } else if (coordX >= getSize().width - img[TRAVE_DIREITA].getWidth(JogoBase.this) - 30
           + img[BOLA].getWidth(JogoBase.this) / 2) {
-        if(started)
+        if (started)
           goleiro1.pontos++;
         started = false;
         velX = velY = 0;
