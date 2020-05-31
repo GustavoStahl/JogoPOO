@@ -113,19 +113,34 @@ class JogoBase extends JFrame {
       // Dinamico
       g.drawImage(img[goleiro1.estado], goleiro1.coordX, goleiro1.coordY, this);
       g.drawImage(img[goleiro2.estado], goleiro2.coordX, goleiro2.coordY, this);
-      if (!bola1.started) {
-        bola1.iniciaBola();
-        bola1.started = true;
-      }
-      g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
-      if (optBolas) {
-        if (!bola2.started) {
+      // if (!bola1.started)
+      //   bola1.iniciaBola();
+      
+      // if (optBolas) {
+      //   if (!bola2.started) {
+      //     bola2.iniciaBola();
+      //     bola2.started = true;
+      //   }
+      //   g.drawImage(img[BOLA], bola2.coordX, bola2.coordY, this);
+      // }
+      if(optBolas && !bola2.started && !bola1.started) {
           bola2.iniciaBola();
-          bola2.started = true;
-        }
-        g.drawImage(img[BOLA], bola2.coordX, bola2.coordY, this);
+          bola1.iniciaBola();
+          // g.drawImage(img[BOLA], bola2.coordX, bola2.coordY, this);
+          // g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
+      } else  if (!optBolas && !bola1.started) {
+          bola1.iniciaBola();
+          g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
       }
 
+      if(bola1.started) {
+        g.drawImage(img[BOLA], bola1.coordX, bola1.coordY, this);
+      }
+
+      if(optBolas && bola2.started) {
+        g.drawImage(img[BOLA], bola2.coordX, bola2.coordY, this);
+      }
+    
       // Estatico
       g.drawImage(img[TRAVE_ESQUERDA], 20, 15, this);
       g.drawImage(img[TRAVE_DIREITA], getSize().width - img[TRAVE_DIREITA].getWidth(this) - 30, 15, this);
@@ -304,6 +319,7 @@ class JogoBase extends JFrame {
       moveHitboxes();
       velX = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirX;
       velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
+      started = true;
     }
 
     void moveHitboxes() {
@@ -419,12 +435,16 @@ class JogoBase extends JFrame {
     // checa se bola esta dentro de algum dos gols
     void dentroDoGol() {
       if (coordX <= 20 - img[BOLA].getWidth(JogoBase.this) / 2) {
-        iniciaBola();
-        goleiro2.pontos++;
+        if(started)
+          goleiro2.pontos++;
+        started = false;
+        velX = velY = 0;
       } else if (coordX >= getSize().width - img[TRAVE_DIREITA].getWidth(JogoBase.this) - 30
           + img[BOLA].getWidth(JogoBase.this) / 2) {
-        iniciaBola();
-        goleiro1.pontos++;
+        if(started)
+          goleiro1.pontos++;
+        started = false;
+        velX = velY = 0;
       }
     }
   }
