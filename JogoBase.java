@@ -32,7 +32,10 @@ class JogoBase extends JFrame {
   // SOM HABILITADO
   boolean comSom;
 
-  //
+  // PAUSE
+  boolean pause = false;
+
+  // MAIS DE UMA BOLA
   boolean optBolas;
 
   // COUNTDOWN
@@ -114,8 +117,14 @@ class JogoBase extends JFrame {
       g.drawImage(img[FUNDO], 0, 0, getSize().width, getSize().height, this);
 
       // Dinamico
-      g.drawImage(img[goleiro1.estado], goleiro1.coordX, goleiro1.coordY, this);
-      g.drawImage(img[goleiro2.estado], goleiro2.coordX, goleiro2.coordY, this);
+      if(goleiro1.fezPonto || goleiro2.fezPonto){
+        g.drawImage(img[goleiro1.estado], goleiro1.posicaoXInicial, goleiro1.posicaoYInicial, this);
+        g.drawImage(img[goleiro2.estado], goleiro2.posicaoXInicial, goleiro2.posicaoYInicial, this);
+      }
+      else{
+        g.drawImage(img[goleiro1.estado], goleiro1.coordX, goleiro1.coordY, this);
+        g.drawImage(img[goleiro2.estado], goleiro2.coordX, goleiro2.coordY, this);
+      }
     
       // Inicia bolas
       if (optBolas && !bola2.started && !bola1.started) {
@@ -138,14 +147,16 @@ class JogoBase extends JFrame {
       g.drawImage(img[TRAVE_DIREITA], getSize().width - img[TRAVE_DIREITA].getWidth(this) - 30, 15, this);
 
       // DESENHA PLACAR
-      g.setColor(new Color(255, 255, 255, 180));
-      g.setFont(new Font("arial", Font.BOLD, 36));
-      g2d.drawString(String.valueOf(goleiro2.pontos), (int) (LARGURA / 2) + (int) (LARGURA / 12 / 2) - 25,
-          (int) (ALTURA / 2) - 15);
-      g.setColor(new Color(255, 255, 255, 180));
-      g.setFont(new Font("arial", Font.BOLD, 36));
-      g2d.drawString(String.valueOf(goleiro1.pontos), (int) (LARGURA / 2) - (int) (LARGURA / 12 / 2) - 20,
-          (int) (ALTURA / 2) - 15);
+      if(!pause){
+        g.setColor(new Color(255, 255, 255, 180));
+        g.setFont(new Font("arial", Font.BOLD, 36));
+        g2d.drawString(String.valueOf(goleiro2.pontos), (int) (LARGURA / 2) + (int) (LARGURA / 12 / 2) - 25,
+            (int) (ALTURA / 2) - 15);
+        g.setColor(new Color(255, 255, 255, 180));
+        g.setFont(new Font("arial", Font.BOLD, 36));
+        g2d.drawString(String.valueOf(goleiro1.pontos), (int) (LARGURA / 2) - (int) (LARGURA / 12 / 2) - 20,
+            (int) (ALTURA / 2) - 15);
+      }
 
       // DESENHA CONTADOR
       if (inicio) {
@@ -155,6 +166,11 @@ class JogoBase extends JFrame {
         g.setColor(Color.BLUE);
         g.setFont(new Font("arial", Font.BOLD, 100));
         g2d.drawString(String.valueOf(valorCountdown), (int) (LARGURA / 2) - 50, (int) (ALTURA / 2));
+      }
+      if(pause){
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("arial", Font.BOLD, 50));
+        g2d.drawString("PAUSE", (int) (LARGURA / 2) - 100, (int) (ALTURA / 2));
       }
       // Hitboxes
       // * Goleiros
@@ -232,9 +248,16 @@ class JogoBase extends JFrame {
         }
         if (e.getKeyCode() == KeyEvent.VK_X) {
           jogoAtivo = false;
+          comSom = false;
           loopTorcida.clip.stop();
           des.repaint();
           dispose();
+        }
+        if(e.getKeyCode() == KeyEvent.VK_ENTER){
+          if(!pause)
+            pause = true;
+          else
+            pause = false;
         }
       }
 
@@ -257,6 +280,7 @@ class JogoBase extends JFrame {
     addWindowListener(new WindowAdapter() {
       public void windowClosed(WindowEvent e) {
         jogoAtivo = false;
+        comSom = false;
         loopTorcida.clip.stop();
       }
     });
@@ -264,11 +288,27 @@ class JogoBase extends JFrame {
     // REDESENHA JOGO A CADA INTERACAO
     Timer timer = new Timer(25, new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (!inicio) {
+        if (!inicio && !pause) {
+
+          if(goleiro1.fezPonto || goleiro2.fezPonto){
+            goleiro1.coordX = goleiro1.posicaoXInicial;
+            goleiro1.coordY = goleiro1.posicaoYInicial;
+            goleiro2.coordX = goleiro2.posicaoXInicial;
+            goleiro2.coordY = goleiro2.posicaoYInicial;
+            goleiro1.fezPonto = goleiro2.fezPonto = false;
+            des.repaint();
+            sleep(700);
+            if(comSom)
+              new PlaySound(inicioSom, false);
+          }
+
           moveGoleiro();
           bola1.moveBola();
           if (optBolas)
             bola2.moveBola();
+          des.repaint();
+        }
+        if(pause){
           des.repaint();
         }
       }
@@ -428,11 +468,7 @@ class JogoBase extends JFrame {
       moveHitboxes();
       // se detectar algum hit toca som
       if((hitLaterais() || hitTraves() || hitGoleiro()) && jogoAtivo) {
-        if(!sound)
           new PlaySound(somBola1, false);
-        else 
-          new PlaySound(somBola2, false);
-        sound = !sound;
       }
       dentroDoGol();
 
@@ -446,14 +482,18 @@ class JogoBase extends JFrame {
     // checa se bola esta dentro de algum dos gols
     void dentroDoGol() {
       if (coordX <= 20 - img[BOLA].getWidth(JogoBase.this) / 2) {
-        if (started)
+        if (started){
           goleiro2.pontos++;
+          goleiro2.fezPonto = true;
+        }
         started = false;
         velX = velY = 0;
       } else if (coordX >= getSize().width - img[TRAVE_DIREITA].getWidth(JogoBase.this) - 30
           + img[BOLA].getWidth(JogoBase.this) / 2) {
-        if (started)
+        if (started){
           goleiro1.pontos++;
+          goleiro1.fezPonto = true;
+        }
         started = false;
         velX = velY = 0;
       }
@@ -469,6 +509,7 @@ class JogoBase extends JFrame {
     int pontos = 0;
     boolean cima = false;
     boolean baixo = false;
+    boolean fezPonto = false;
 
     Goleiro(int estado, int posicaoXInicial, int posicaoYInicial) {
       this.estado = estado;
@@ -522,6 +563,7 @@ class JogoBase extends JFrame {
     addWindowListener(new WindowAdapter() {
       public void windowClosed(WindowEvent e) {
         jogoAtivo = false;
+        comSom = false;
         loopTorcida.clip.stop();
       }
     });
