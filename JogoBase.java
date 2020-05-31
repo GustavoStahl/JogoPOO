@@ -37,6 +37,7 @@ class JogoBase extends JFrame {
 
   // MAIS DE UMA BOLA
   boolean optBolas;
+  volatile int contadorBolas = 0;
 
   // COUNTDOWN
   boolean inicio;
@@ -46,12 +47,12 @@ class JogoBase extends JFrame {
   Image img[] = new Image[10];
 
   // SONS
-  File inicioSom;
+  volatile File inicioSom;
   File countdownSom;
-  File torcida;
-  File somBola1;
-  File somBola2;
-  File pontoFeito;
+  volatile File torcida;
+  volatile File somBola1;
+  volatile File somBola2;
+  volatile File pontoFeito;
   PlaySound loopTorcida;
 
   Desenho des;
@@ -250,7 +251,6 @@ class JogoBase extends JFrame {
           jogoAtivo = false;
           comSom = false;
           loopTorcida.clip.stop();
-          des.repaint();
           dispose();
         }
         if(e.getKeyCode() == KeyEvent.VK_ENTER){
@@ -291,15 +291,31 @@ class JogoBase extends JFrame {
         if (!inicio && !pause) {
 
           if(goleiro1.fezPonto || goleiro2.fezPonto){
-            goleiro1.coordX = goleiro1.posicaoXInicial;
-            goleiro1.coordY = goleiro1.posicaoYInicial;
-            goleiro2.coordX = goleiro2.posicaoXInicial;
-            goleiro2.coordY = goleiro2.posicaoYInicial;
-            goleiro1.fezPonto = goleiro2.fezPonto = false;
-            des.repaint();
-            sleep(700);
-            if(comSom)
-              new PlaySound(inicioSom, false);
+            if(optBolas){
+              ++contadorBolas;
+              if(contadorBolas >= 2){
+                contadorBolas = 0;
+                goleiro1.resetaGoleiro();
+                goleiro2.resetaGoleiro();
+                des.repaint();
+                new PlaySound(pontoFeito, false);
+                sleep(1200);
+                if(comSom)
+                  new PlaySound(inicioSom, false);
+              }
+              else{
+                goleiro1.fezPonto = goleiro2.fezPonto = false;
+              }
+            }
+            else{
+              goleiro1.resetaGoleiro();
+              goleiro2.resetaGoleiro();
+              des.repaint();
+              new PlaySound(pontoFeito, false);
+              sleep(1200);
+              if(comSom)
+                new PlaySound(inicioSom, false);
+            }
           }
 
           moveGoleiro();
@@ -515,6 +531,11 @@ class JogoBase extends JFrame {
       this.estado = estado;
       this.posicaoXInicial = this.coordX = posicaoXInicial;
       this.posicaoYInicial = this.coordY = posicaoYInicial;
+    }
+    public void resetaGoleiro(){
+      coordX = posicaoXInicial;
+      coordY = posicaoYInicial;
+      fezPonto = false;
     }
   }
 
