@@ -60,8 +60,7 @@ class JogoBase extends JFrame {
   // Hitboxes
   Line2D hitLineGoleiroEsqFrente;
   Line2D hitLineGoleiroDirFrente;
-  Rectangle hitBola1EsqSup, hitBola1EsqInf, hitBola1DirSup, hitBola1DirInf, hitBola2EsqSup, hitBola2EsqInf,
-      hitBola2DirSup, hitBola2DirInf, hitboxGoleiroEsqFrente, hitboxGoleiroDirFrente;
+  Rectangle hitboxGoleiroEsqFrente, hitboxGoleiroDirFrente;
   Point pontoEsquerdoSup, pontoDireitoSup;
 
   class Desenho extends JPanel {
@@ -166,26 +165,12 @@ class JogoBase extends JFrame {
       hitboxGoleiroDirFrente = new Rectangle(goleiro2.coordX, goleiro2.coordY, (int) (20. / 800 * LARGURA),
           img[goleiro2.estado].getHeight(this));
 
-      // * Bolas
-      // * * Bola 1
-      hitBola1EsqSup = new Rectangle(bola1.coordX, bola1.coordY + img[BOLA].getHeight(this) / 4, 3, 3);
-      hitBola1EsqInf = new Rectangle(bola1.coordX, bola1.coordY + img[BOLA].getHeight(this) * 3 / 4, 3, 3);
-      hitBola1DirSup = new Rectangle(bola1.coordX + img[BOLA].getWidth(this),
-          bola1.coordY + img[BOLA].getHeight(this) / 4, 3, 3);
-      hitBola1DirInf = new Rectangle(bola1.coordX + img[BOLA].getWidth(this),
-          bola1.coordY + img[BOLA].getHeight(this) * 3 / 4, 3, 3);
-      // * * Bola 2
-      if (optBolas) {
-        hitBola2EsqSup = new Rectangle(bola2.coordX, bola2.coordY + img[BOLA].getHeight(this) / 4, 3, 3);
-        hitBola2EsqInf = new Rectangle(bola2.coordX, bola2.coordY + img[BOLA].getHeight(this) * 3 / 4, 3, 3);
-        hitBola2DirSup = new Rectangle(bola2.coordX + img[BOLA].getWidth(this),
-            bola2.coordY + img[BOLA].getHeight(this) / 4, 3, 3);
-        hitBola2DirInf = new Rectangle(bola2.coordX + img[BOLA].getWidth(this),
-            bola2.coordY + img[BOLA].getHeight(this) * 3 / 4, 3, 3);
-      }
-      Graphics2D g2d = (Graphics2D) g;
-      g2d.setColor(Color.RED);
-      // g2d.draw(hitBola2DirInf);
+      // Graphics2D g2d = (Graphics2D) g;
+      // g2d.setColor(Color.RED);
+      // g2d.draw(bola2.hbDirInf);
+      // g2d.draw(bola2.hbDirSup);
+      // g2d.draw(bola2.hbEsqInf);
+      // g2d.draw(bola2.hbEsqSup);
       // g2d.draw(hitBola2DirSup);
       // g2d.draw(hitBola2EsqInf);
       // g2d.draw(hitBola2EsqSup);
@@ -295,6 +280,9 @@ class JogoBase extends JFrame {
     double velX, velY;
     boolean started = false;
 
+    // Hitboxes
+    Rectangle hbEsqSup, hbEsqInf, hbDirSup, hbDirInf;
+
     Bola(int n) {
       this.n = n;
     }
@@ -313,9 +301,18 @@ class JogoBase extends JFrame {
         coordX = getWidth() / 2 - img[BOLA].getWidth(JogoBase.this) / 2;
         coordY = getHeight() * 3 / 4 - img[BOLA].getHeight(JogoBase.this) / 2;
       }
-
+      moveHitboxes();
       velX = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirX;
       velY = (new Random().nextInt(MAX_SPEED - MIN_SPEED) + MIN_SPEED) * dirY;
+    }
+
+    void moveHitboxes() {
+      hbEsqSup = new Rectangle(coordX, coordY + img[BOLA].getHeight(JogoBase.this) / 4, 3, 3);
+      hbEsqInf = new Rectangle(coordX, coordY + img[BOLA].getHeight(JogoBase.this) * 3 / 4, 3, 3);
+      hbDirSup = new Rectangle(coordX + img[BOLA].getWidth(JogoBase.this),
+          coordY + img[BOLA].getHeight(JogoBase.this) / 4, 3, 3);
+      hbDirInf = new Rectangle(coordX + img[BOLA].getWidth(JogoBase.this),
+          coordY + img[BOLA].getHeight(JogoBase.this) * 3 / 4, 3, 3);
     }
 
     void hitTraves() {
@@ -345,135 +342,68 @@ class JogoBase extends JFrame {
       double yIntersect, bounceAngle = 0, speed, newVelY;
       speed = Math.sqrt(Math.pow(velX, 2) + Math.pow(velY, 2));
       // se a bola estiver a direita do campo
-      if (n == 0 || n == 1) {
-        if (coordX > getWidth() / 2) {
-          if (hitBola1DirSup.getY() >= hitboxGoleiroDirFrente.getY()
-              && hitBola1DirSup.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
-              && hitBola1DirSup.getX() >= hitboxGoleiroDirFrente.getX()
-              && hitBola1DirSup.getX() <= hitboxGoleiroDirFrente.getX() + (int) (20. / 800 * LARGURA)) {
-            yIntersect = hitBola1DirSup.getY()
-                - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
-            yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * -Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          } else if (hitBola1DirInf.getY() >= hitboxGoleiroDirFrente.getY()
-              && hitBola1DirInf.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
-              && hitBola1DirInf.getX() >= hitboxGoleiroDirFrente.getX()
-              && hitBola1DirInf.getX() <= hitboxGoleiroDirFrente.getX() + (int) (20. / 800 * LARGURA)) {
-            yIntersect = hitBola1DirInf.getY()
-                - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
-            yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * -Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          }
-        } else {
-          if (hitBola1EsqSup.getY() >= hitboxGoleiroEsqFrente.getY()
-              && hitBola1EsqSup.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
-              && hitBola1EsqSup.getX() <= hitboxGoleiroEsqFrente.getX() + (int) (20. / 800 * LARGURA)
-              && hitBola1EsqSup.getX() >= hitboxGoleiroEsqFrente.getX()) {
-            yIntersect = hitBola1EsqSup.getY()
-                - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
-            yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          } else if (hitBola1EsqInf.getY() >= hitboxGoleiroEsqFrente.getY()
-              && hitBola1EsqInf.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
-              && hitBola1EsqInf.getX() <= hitboxGoleiroEsqFrente.getX() + (int) (20. / 800 * LARGURA)
-              && hitBola1EsqInf.getX() >= hitboxGoleiroEsqFrente.getX()) {
-            yIntersect = hitBola1EsqInf.getY()
-                - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
-            yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          }
+      if (coordX > getWidth() / 2) {
+        if (hbDirSup.getY() >= hitboxGoleiroDirFrente.getY()
+            && hbDirSup.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
+            && hbDirSup.getX() >= hitboxGoleiroDirFrente.getX()
+            && hbDirSup.getX() <= hitboxGoleiroDirFrente.getX() + (int) (20. / 800 * LARGURA)) {
+          yIntersect = hbDirSup.getY() - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
+          yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
+          bounceAngle = yIntersect * MAX_ANGLE;
+          velX = speed * -Math.cos(bounceAngle);
+          newVelY = speed * -Math.sin(bounceAngle);
+          if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+            velY = -newVelY;
+          else
+            velY = newVelY;
+        } else if (hbDirInf.getY() >= hitboxGoleiroDirFrente.getY()
+            && hbDirInf.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
+            && hbDirInf.getX() >= hitboxGoleiroDirFrente.getX()
+            && hbDirInf.getX() <= hitboxGoleiroDirFrente.getX() + (int) (20. / 800 * LARGURA)) {
+          yIntersect = hbDirInf.getY() - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
+          yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
+          bounceAngle = yIntersect * MAX_ANGLE;
+          velX = speed * -Math.cos(bounceAngle);
+          newVelY = speed * -Math.sin(bounceAngle);
+          if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+            velY = -newVelY;
+          else
+            velY = newVelY;
         }
       } else {
-        if (coordX > getWidth() / 2) {
-          if (hitBola2DirSup.getY() >= hitboxGoleiroDirFrente.getY()
-              && hitBola2DirSup.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
-              && hitBola2DirSup.getX() >= hitboxGoleiroDirFrente.getX()
-              && hitBola2DirSup.getX() <= hitboxGoleiroDirFrente.getX() + (int) (20. / 800 * LARGURA)) {
-            yIntersect = hitBola2DirSup.getY()
-                - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
-            yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * -Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          } else if (hitBola2DirInf.getY() >= hitboxGoleiroDirFrente.getY()
-              && hitBola2DirInf.getY() <= hitboxGoleiroDirFrente.getY() + img[goleiro2.estado].getHeight(JogoBase.this)
-              && hitBola2DirInf.getX() >= hitboxGoleiroDirFrente.getX()
-              && hitBola2DirInf.getX() <= hitboxGoleiroDirFrente.getX() + (int) (20. / 800 * LARGURA)) {
-            yIntersect = hitBola2DirInf.getY()
-                - (hitLineGoleiroDirFrente.getY1() + hitLineGoleiroDirFrente.getY2()) / 2;
-            yIntersect /= img[goleiro2.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * -Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          }
-        } else {
-          if (hitBola2EsqSup.getY() >= hitboxGoleiroEsqFrente.getY()
-              && hitBola2EsqSup.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
-              && hitBola2EsqSup.getX() <= hitboxGoleiroEsqFrente.getX() + (int) (20. / 800 * LARGURA)
-              && hitBola2EsqSup.getX() >= hitboxGoleiroEsqFrente.getX()) {
-            yIntersect = hitBola2EsqSup.getY()
-                - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
-            yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          } else if (hitBola2EsqInf.getY() >= hitboxGoleiroEsqFrente.getY()
-              && hitBola2EsqInf.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
-              && hitBola2EsqInf.getX() <= hitboxGoleiroEsqFrente.getX() + (int) (20. / 800 * LARGURA)
-              && hitBola2EsqInf.getX() >= hitboxGoleiroEsqFrente.getX()) {
-            yIntersect = hitBola2EsqInf.getY()
-                - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
-            yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
-            bounceAngle = yIntersect * MAX_ANGLE;
-            velX = speed * Math.cos(bounceAngle);
-            newVelY = speed * -Math.sin(bounceAngle);
-            if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
-              velY = -newVelY;
-            else
-              velY = newVelY;
-          }
+        if (hbEsqSup.getY() >= hitboxGoleiroEsqFrente.getY()
+            && hbEsqSup.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
+            && hbEsqSup.getX() <= hitboxGoleiroEsqFrente.getX() + (int) (20. / 800 * LARGURA)
+            && hbEsqSup.getX() >= hitboxGoleiroEsqFrente.getX()) {
+          yIntersect = hbEsqSup.getY() - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
+          yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
+          bounceAngle = yIntersect * MAX_ANGLE;
+          velX = speed * Math.cos(bounceAngle);
+          newVelY = speed * -Math.sin(bounceAngle);
+          if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+            velY = -newVelY;
+          else
+            velY = newVelY;
+        } else if (hbEsqInf.getY() >= hitboxGoleiroEsqFrente.getY()
+            && hbEsqInf.getY() <= hitboxGoleiroEsqFrente.getY() + img[goleiro1.estado].getHeight(JogoBase.this)
+            && hbEsqInf.getX() <= hitboxGoleiroEsqFrente.getX() + (int) (20. / 800 * LARGURA)
+            && hbEsqInf.getX() >= hitboxGoleiroEsqFrente.getX()) {
+          yIntersect = hbEsqInf.getY() - (hitLineGoleiroEsqFrente.getY1() + hitLineGoleiroEsqFrente.getY2()) / 2;
+          yIntersect /= img[goleiro1.estado].getHeight(JogoBase.this) / 2;
+          bounceAngle = yIntersect * MAX_ANGLE;
+          velX = speed * Math.cos(bounceAngle);
+          newVelY = speed * -Math.sin(bounceAngle);
+          if (velY < 0 && newVelY > 0 || velY > 0 && newVelY < 0)
+            velY = -newVelY;
+          else
+            velY = newVelY;
         }
       }
     }
 
     // loop que move bola e executa as verificações de hits
     void moveBola() {
+      moveHitboxes();
       hitGoleiro();
       hitLaterais();
       hitTraves();
