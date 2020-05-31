@@ -17,11 +17,14 @@ class Menu extends JFrame {
     final int SAIR = 2;
     final int MENU_IMG = 0;
     final int OPT_IMG = 1;
+    final int CONTROLES_IMG = 2;
     final int RESOLUCAO = 0;
     final int MODO = 1;
     final int SOM = 2;
-    final int CANCELAR = 3;
-    final int SALVAR = 4;
+    final int CONTROLES = 3;
+    final int CANCELAR = 4;
+    final int SALVAR = 5;
+    final int VOLTAR = 0;
     final int RES1 = 0;
     final int RES2 = 1;
     final int RES3 = 2;
@@ -42,10 +45,11 @@ class Menu extends JFrame {
     int currScreen = MENU_IMG;
     int[] lastOpt = new int[3];
     // Guarda as opções no formato {Resolução, Modo de Jogo, Som}
-    int[] optOpcoes = new int[]{ RES1, MODO1, SOM_ON };
+    int[] optOpcoes = new int[] { RES1, MODO1, SOM_ON };
     String[] optResolutions = { "800×600", "960×720", "1024×768", "1280×960" };
-    int[] resX = {800,960,1024,1280};
-    int[] resY = {600,720,768,960};
+    int[] resX = { 800, 960, 1024, 1280 };
+    int[] resY = { 600, 720, 768, 960 };
+
     class Desenha extends JPanel {
         // Botões do menu principal
         Rectangle jogarBtn;
@@ -67,16 +71,25 @@ class Menu extends JFrame {
         Rectangle optMenuArea;
         String optMenuAreaTxt = "OPÇÕES";
 
+        Rectangle ctrlInnerArea;
+
         Rectangle optResolution;
         String optResolutionTxt = "RESOLUÇÃO";
 
         Rectangle optSound;
         String optSoundTxt = "SOM";
-        String[] optSoundToggleTxt = {"DESATIVADO", "ATIVADO"};
+        String[] optSoundToggleTxt = { "DESATIVADO", "ATIVADO" };
 
         Rectangle optMode;
         String optModeTxt = "MODO";
-        String[] optModesTxt = {"1x BOLA", "2x BOLAS"};
+        String[] optModesTxt = { "1x BOLA", "2x BOLAS" };
+
+        Rectangle optControles;
+        String optControlesTxt = "CONTROLES";
+
+        // Componentes do menu de controles
+        Rectangle voltarBtn;
+        String voltarTxt = "VOLTAR";
 
         Font font;
 
@@ -100,7 +113,7 @@ class Menu extends JFrame {
             g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
             if (currScreen == MENU_IMG)
                 g.drawImage(img[MENU_IMG], 0, 0, getSize().width, getSize().height, this);
-            else if (currScreen == OPT_IMG)
+            else if (currScreen == OPT_IMG || currScreen == CONTROLES_IMG)
                 g.drawImage(img[OPT_IMG], 0, 0, getSize().width, getSize().height, this);
             g.setFont(font);
 
@@ -115,12 +128,18 @@ class Menu extends JFrame {
             cancelarBtn = new Rectangle(getSize().width / 4 - w / 2, getSize().height * 7 / 8 - h / 2, w, h);
             optMenuArea = new Rectangle(getSize().width / 4 - w / 2, getSize().height / 2 - h * 2 + 10,
                     w + getSize().width / 2, h * 3);
+            ctrlInnerArea = new Rectangle(getSize().width / 4 - w / 2 + 5, getSize().height / 2 - h * 2 + 15,
+                    w + getSize().width / 2 - 10, h * 3 - 10);
             w = optMenuArea.getSize().width - 20;
-            h = optMenuArea.getSize().height / 3 - 20;
+            h = optMenuArea.getSize().height / 4 - 20;
             optResolution = new Rectangle((int) optMenuArea.getCenterX() - w / 2, (int) optMenuArea.getY() + 15, w, h);
             optMode = new Rectangle((int) optMenuArea.getCenterX() - w / 2, (int) optMenuArea.getY() + 30 + h, w, h);
             optSound = new Rectangle((int) optMenuArea.getCenterX() - w / 2, (int) optMenuArea.getY() + 45 + 2 * h, w,
                     h);
+            optControles = new Rectangle((int) optMenuArea.getCenterX() - w / 2, (int) optMenuArea.getY() + 60 + 3 * h,
+                    w, h);
+            voltarBtn = new Rectangle((int) optMenuArea.getCenterX() - w / 2, getSize().height * 7 / 8 - h / 2, w, h);
+
             font = new Font("Roboto", Font.PLAIN, 50);
 
             // Cores utilizadas na interface grafica
@@ -129,7 +148,6 @@ class Menu extends JFrame {
             Color txtColor = new Color(237, 244, 242);
             Color outlineColor = new Color(221, 221, 221);
             Color bgAreaColor = new Color(136, 136, 136);
-            // 245,163,26 laranja -> não utilizada
 
             int strWidth, strHeight;
             // Desenha os componentes do menu
@@ -201,12 +219,19 @@ class Menu extends JFrame {
                     g.setColor(btnSelected);
                 g2d.fill(optSound);
 
+                g2d.setColor(btnUnselected);
+                if (selectedOpt == CONTROLES)
+                    g.setColor(btnSelected);
+                g2d.fill(optControles);
+
                 g.setColor(outlineColor);
+                g2d.draw(optMenuArea);
                 g2d.draw(salvarBtn);
                 g2d.draw(cancelarBtn);
                 g2d.draw(optResolution);
                 g2d.draw(optMode);
                 g2d.draw(optSound);
+                g2d.draw(optControles);
 
                 // Desenha textos
                 strWidth = g.getFontMetrics(font).stringWidth(cancelarTxt);
@@ -231,18 +256,67 @@ class Menu extends JFrame {
                         (int) optSound.getX() + optSound.getSize().width - strWidth - 10,
                         (int) (optSound.getY() + optSound.getHeight() / 2 + strHeight / 3));
 
-
                 strWidth = g.getFontMetrics(font).stringWidth(optSoundTxt);
                 g.drawString(optSoundTxt, (int) (optSound.getX()) + 10,
                         (int) (optSound.getY() + optSound.getHeight() / 2 + strHeight / 3));
                 strWidth = g.getFontMetrics(font).stringWidth(optModesTxt[optOpcoes[1]]);
-                g.drawString(optModesTxt[optOpcoes[1]],
-                        (int) optMode.getX() + optMode.getSize().width - strWidth - 10,
+                g.drawString(optModesTxt[optOpcoes[1]], (int) optMode.getX() + optMode.getSize().width - strWidth - 10,
                         (int) (optMode.getY() + optMode.getHeight() / 2 + strHeight / 3));
 
                 strWidth = g.getFontMetrics(font).stringWidth(salvarTxt);
                 g.drawString(salvarTxt, (int) (salvarBtn.getX() + salvarBtn.getWidth() / 2 - strWidth / 2),
                         (int) (salvarBtn.getY() + salvarBtn.getHeight() / 2 + strHeight / 3));
+
+                strWidth = g.getFontMetrics(font).stringWidth(optControlesTxt);
+                g.drawString(optControlesTxt, (int) (optControles.getX() + optControles.getWidth() / 2 - strWidth / 2),
+                        (int) (optControles.getY() + optControles.getHeight() / 2 + strHeight / 3));
+            }
+
+            if (currScreen == CONTROLES_IMG) {
+                g.setColor(bgAreaColor);
+                g2d.fill(optMenuArea);
+
+                g.setColor(btnUnselected);
+                g2d.fill(ctrlInnerArea);
+
+                g2d.setColor(btnSelected);
+                g2d.fill(voltarBtn);
+
+                g2d.setColor(outlineColor);
+                g2d.draw(voltarBtn);
+
+                g2d.setColor(txtColor);
+                strWidth = g.getFontMetrics(font).stringWidth(voltarTxt);
+                strHeight = g.getFontMetrics(font).getHeight();
+                g.drawString(voltarTxt, (int) (voltarBtn.getX() + voltarBtn.getWidth() / 2 - strWidth / 2),
+                        (int) (voltarBtn.getY() + voltarBtn.getHeight() / 2 + strHeight / 3));
+                strWidth = g.getFontMetrics(font).stringWidth("JOGADOR 1");
+                g.drawString("JOGADOR 1", (int) (optResolution.getX()) + 10,
+                        (int) (optResolution.getY() + optResolution.getHeight() / 2 + strHeight / 3));
+                strWidth = g.getFontMetrics(font).stringWidth("Q, W");
+                g.drawString("Q, W", (int) optResolution.getX() + optResolution.getSize().width - strWidth - 10,
+                        (int) (optResolution.getY() + optResolution.getHeight() / 2 + strHeight / 3));
+
+                strWidth = g.getFontMetrics(font).stringWidth("JOGADOR 2");
+                g.drawString("JOGADOR 2", (int) (optMode.getX()) + 10,
+                        (int) (optMode.getY() + optMode.getHeight() / 2 + strHeight / 3));
+                strWidth = g.getFontMetrics(font).stringWidth("O, P");
+                g.drawString("O, P", (int) optMode.getX() + optMode.getSize().width - strWidth - 10,
+                        (int) (optMode.getY() + optMode.getHeight() / 2 + strHeight / 3));
+
+                strWidth = g.getFontMetrics(font).stringWidth("ENCERRAR PARTIDA");
+                g.drawString("SAIR DA PARTIDA", (int) (optSound.getX()) + 10,
+                        (int) (optSound.getY() + optSound.getHeight() / 2 + strHeight / 3));
+                strWidth = g.getFontMetrics(font).stringWidth("X");
+                g.drawString("X", (int) optSound.getX() + optSound.getSize().width - strWidth - 10,
+                        (int) (optSound.getY() + optSound.getHeight() / 2 + strHeight / 3));
+                strWidth = g.getFontMetrics(font).stringWidth("PAUSAR");
+                g.drawString("PAUSAR", (int) (optControles.getX() + 10),
+                        (int) (optControles.getY() + optControles.getHeight() / 2 + strHeight / 3));
+                strWidth = g.getFontMetrics(font).stringWidth("ENTER");
+                g.drawString("ENTER", (int) optControles.getX() + optControles.getSize().width - strWidth - 10,
+                        (int) (optControles.getY() + optControles.getHeight() / 2 + strHeight / 3));
+
             }
 
             g.setColor(txtColor);
@@ -269,7 +343,7 @@ class Menu extends JFrame {
     }
 
     void toggleOpt(int i) {
-        if(optOpcoes[i] == 1) {
+        if (optOpcoes[i] == 1) {
             optOpcoes[i] = 0;
             return;
         }
@@ -279,14 +353,14 @@ class Menu extends JFrame {
     void changeResolution(String opt) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         double width = screenSize.getWidth();
-        if(opt == "UP") {
-            if(optOpcoes[0] < optResolutions.length - 1 && resX[optOpcoes[0]+1] < width)
-                    optOpcoes[0]++;
-                else
-                    optOpcoes[0] = 0;
-        } else if(opt == "DOWN") {
-            if(optOpcoes[0] == 0)
-                while(optOpcoes[0] < optResolutions.length - 1 && resX[optOpcoes[0]+1] < width)
+        if (opt == "UP") {
+            if (optOpcoes[0] < optResolutions.length - 1 && resX[optOpcoes[0] + 1] < width)
+                optOpcoes[0]++;
+            else
+                optOpcoes[0] = 0;
+        } else if (opt == "DOWN") {
+            if (optOpcoes[0] == 0)
+                while (optOpcoes[0] < optResolutions.length - 1 && resX[optOpcoes[0] + 1] < width)
                     optOpcoes[0]++;
             else
                 optOpcoes[0]--;
@@ -312,9 +386,9 @@ class Menu extends JFrame {
                     selectedOpt = SALVAR;
                 else if (selectedOpt == SOM)
                     toggleOpt(2);
-                else if(selectedOpt == RESOLUCAO)
+                else if (selectedOpt == RESOLUCAO)
                     changeResolution("UP");
-                else if(selectedOpt == MODO)
+                else if (selectedOpt == MODO)
                     toggleOpt(1);
                 break;
             case KeyEvent.VK_LEFT:
@@ -322,30 +396,32 @@ class Menu extends JFrame {
                     selectedOpt = CANCELAR;
                 else if (selectedOpt == SOM)
                     toggleOpt(2);
-                else if(selectedOpt == RESOLUCAO)
-                    changeResolution("DOWN");   
-                else if(selectedOpt == MODO)
-                    toggleOpt(1); 
+                else if (selectedOpt == RESOLUCAO)
+                    changeResolution("DOWN");
+                else if (selectedOpt == MODO)
+                    toggleOpt(1);
                 break;
             case KeyEvent.VK_ENTER:
                 if (selectedOpt == SOM)
                     toggleOpt(2);
-                else if(selectedOpt == RESOLUCAO)
+                else if (selectedOpt == RESOLUCAO)
                     changeResolution("UP");
-                else if(selectedOpt == MODO)
+                else if (selectedOpt == MODO)
                     toggleOpt(1);
-                else if(selectedOpt == CANCELAR) {
+                else if (selectedOpt == CANCELAR) {
                     System.arraycopy(lastOpt, 0, optOpcoes, 0, lastOpt.length);
                     des.repaint();
                     currScreen = MENU_IMG;
-                } else {
-                    setSize(new Dimension(resX[optOpcoes[0]],resY[optOpcoes[0]]));
+                } else if (selectedOpt == CONTROLES)
+                    currScreen = CONTROLES_IMG;
+                else {
+                    setSize(new Dimension(resX[optOpcoes[0]], resY[optOpcoes[0]]));
                     des.repaint();
                     currScreen = MENU_IMG;
                 }
                 break;
         }
-        
+
         des.repaint();
     }
 
@@ -356,17 +432,26 @@ class Menu extends JFrame {
             toggleOpt(1);
         } else if (des.optSound.contains(p)) {
             toggleOpt(2);
-        } else if(des.cancelarBtn.contains(p)) {
+        } else if (des.optControles.contains(p)) {
+            currScreen = CONTROLES_IMG;
+        } else if (des.cancelarBtn.contains(p)) {
             System.arraycopy(lastOpt, 0, optOpcoes, 0, lastOpt.length);
             des.repaint();
             currScreen = MENU_IMG;
         } else if (des.salvarBtn.contains(p)) {
-            setSize(new Dimension(resX[optOpcoes[0]],resY[optOpcoes[0]]));
+            setSize(new Dimension(resX[optOpcoes[0]], resY[optOpcoes[0]]));
             des.repaint();
             currScreen = MENU_IMG;
         }
 
         des.repaint();
+    }
+
+    void mouseClickedCtrlMenu(Point p) {
+        if (des.voltarBtn.contains(p)) {
+            currScreen = OPT_IMG;
+            des.repaint();
+        }
     }
 
     void mouseMoveOptMenu(Point p) {
@@ -380,19 +465,21 @@ class Menu extends JFrame {
             selectedOpt = SOM;
         else if (des.optMode.contains(p))
             selectedOpt = MODO;
+        else if (des.optControles.contains(p))
+            selectedOpt = CONTROLES;
         des.repaint();
     }
 
-    Menu(boolean inicia){
-        if(inicia){
+    Menu(boolean inicia) {
+        if (inicia) {
             dispose();
         }
     }
 
     Menu() {
-        super("FUTBILLY");
+        super("FUTEBOL EXTREME DOIDERA");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
+
         // Lida com ações do teclado
         addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
@@ -409,7 +496,6 @@ class Menu extends JFrame {
                                 case JOGAR:
                                     menuAtivo = false;
                                     dispose();
-                                    // do something
                                     break;
                                 case OPT:
                                     System.arraycopy(optOpcoes, 0, lastOpt, 0, optOpcoes.length);
@@ -422,6 +508,9 @@ class Menu extends JFrame {
                     }
                 } else if (currScreen == OPT_IMG) {
                     selectOptMenu(e);
+                } else if (currScreen == CONTROLES_IMG) {
+                    currScreen = OPT_IMG;
+                    des.repaint();
                 }
             }
         });
@@ -449,6 +538,8 @@ class Menu extends JFrame {
                         System.exit(0);
                 } else if (currScreen == OPT_IMG) {
                     mouseClickedOptMenu(p);
+                } else if (currScreen == CONTROLES_IMG) {
+                    mouseClickedCtrlMenu(p);
                 }
             }
         });
@@ -493,6 +584,6 @@ class Menu extends JFrame {
 
     static public void main(String[] args) {
         Menu f = new Menu();
-        
+
     }
 }
